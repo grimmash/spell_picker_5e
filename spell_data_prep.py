@@ -123,8 +123,43 @@ def total_constructor(valid_schools=school_list,
     return spellbook
 
 
-def spellbook_export(df, file_name):
-    df.to_csv(file_name, index=False)
+def spellbook_csv_export(df, csv_name):
+    df.to_csv(csv_name, index=False)
+
+
+def spellbook_text_file(df, text_name):
+    # for each spell in the spell book, get text strings
+    spell_headings = list(df.columns)
+    df["text_list"] = df[spell_headings].values.tolist()
+    spell_text_lists = df["text_list"].tolist()
+
+    # spell_text_lists #lists of lists
+    formatted_list = []
+
+    # add headings
+    for spell in spell_text_lists:
+        formatted_spell = [str(h) + ": " + str(s) for h, s in zip(spell_headings, spell)]
+        formatted_list.append(formatted_spell)
+
+    # write to file
+    with open(text_name, "w") as f:
+        for spell in formatted_list:
+            for line in spell:
+                f.write(line)
+                f.write("\n")
+            f.write("\n")
+
+
+def build_everything(name,
+                     valid_schools=school_list,
+                     valid_classes=class_list,
+                     spells_per_level=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                     ):
+    csv_path = name + ".csv"
+    txt_path = name + ".txt"
+    spellbook_df = total_constructor(valid_schools, valid_classes, spells_per_level)
+    spellbook_csv_export(spellbook_df, csv_path)
+    spellbook_text_file(spellbook_df, txt_path)
 
 # Data Cleanup
 # add columns for schools and classes for quick filtering
@@ -147,3 +182,9 @@ spell_level_dict = {"Cantrip":0,
                    "9th":9}
 
 spell_df["Spell Level"] = spell_df["Level"].map(spell_level_dict)
+
+# examples:
+new_spellbook = total_constructor(["Necromancy","Abjuration"],["Wizard","Druid"],spells_per_level=[4,3,3])
+spellbook_csv_export(new_spellbook,"test_spellbook.csv")
+spellbook_text_file(new_spellbook,"another_book.txt")
+build_everything("booky",['Conjuration'],['Wizard'],[1,1,1,1,1,1,1,1,1,1])
