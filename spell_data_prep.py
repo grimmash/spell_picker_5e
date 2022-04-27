@@ -5,6 +5,8 @@ spell_df = pd.read_csv("Spells.csv")
 spell_df['Classes'].fillna("Unknown", inplace=True)
 spell_df.head()
 
+# Variables
+
 # Get schools from input
 school_list = spell_df['School'].unique()
 print(school_list)
@@ -27,27 +29,6 @@ for phrase in classes_raw:
 class_list = list(set(class_list))
 print(class_list)
 
-# add columns for schools and classes for quick filtering
-spell_df = pd.concat([spell_df,pd.DataFrame(columns=class_list)])
-
-# Prepare the spell input data to have binary flags by class
-for value in class_list:
-    spell_df[value] = spell_df.apply(lambda x: class_mapper(value, x['Classes']), axis=1)
-
-# map spell level names to int
-spell_level_dict = {"Cantrip":0,
-                   "1st":1,
-                   "2nd":2,
-                   "3rd":3,
-                   "4th":4,
-                   "5th":5,
-                   "6th":6,
-                   "7th":7,
-                   "8th":8,
-                   "9th":9}
-
-spell_df["Spell Level"] = spell_df["Level"].map(spell_level_dict)
-#spell_df.head()
 
 # functions
 
@@ -144,3 +125,25 @@ def total_constructor(valid_schools=school_list,
 
 def spellbook_export(df, file_name):
     df.to_csv(file_name, index=False)
+
+# Data Cleanup
+# add columns for schools and classes for quick filtering
+spell_df = pd.concat([spell_df,pd.DataFrame(columns=class_list)])
+
+# Prepare the spell input data to have binary flags by class
+for value in class_list:
+    spell_df[value] = spell_df.apply(lambda x: class_mapper(value, x['Classes']), axis=1)
+
+# map spell level names to int
+spell_level_dict = {"Cantrip":0,
+                   "1st":1,
+                   "2nd":2,
+                   "3rd":3,
+                   "4th":4,
+                   "5th":5,
+                   "6th":6,
+                   "7th":7,
+                   "8th":8,
+                   "9th":9}
+
+spell_df["Spell Level"] = spell_df["Level"].map(spell_level_dict)
