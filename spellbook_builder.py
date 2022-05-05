@@ -38,18 +38,15 @@ def class_mapper(class_value, class_lookup_column):
     '''
     Maps the input classes to columns for binary flag filtering by class
     '''
-    if class_value in class_lookup_column:
-        return 1
-    else:
-        return 0
+    return 1 if class_value in class_lookup_column else 0
 
 
 def spell_list_length_validator(some_list):
     new_list = some_list
     length_value = len(some_list)
-    diff = 10 - length_value
     if length_value < 10:
-        for i in range(diff):
+        diff = 10 - length_value
+        for _ in range(diff):
             new_list.append(0)
             result = new_list
     else:
@@ -57,18 +54,18 @@ def spell_list_length_validator(some_list):
     return result
 
 
-def spellbook_validator(valid_schools=school_list,
-                        valid_classes=class_list,
-                        spells_per_level=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
+def spellbook_validator(valid_schools=school_list, valid_classes=class_list, spells_per_level = None):
     '''
     Validates if your list of schoosl, classes and spell levels is consitent with the input sata and 5e spell levels.
     '''
 
-    if (not all(x in school_list for x in valid_schools)):
+    if spells_per_level is None:
+        spells_per_level = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    if any(x not in school_list for x in valid_schools):
         print("Please make sure your arcane schools are from the following list:")
         for i in school_list:
             print("    " + i)
-    elif (not all(x in class_list for x in valid_classes)):
+    elif any(x not in class_list for x in valid_classes):
         print("Please make sure your classes are from the following list:")
         for i in class_list:
             print("    " + i)
@@ -76,15 +73,20 @@ def spellbook_validator(valid_schools=school_list,
         print("You have more than 10 spell levels enumerated!  Please enter less than 10 levels.")
 
     else:
-        print("Schools chosen: ")
-        for i in valid_schools:
-            print("    " + i)
-        print("Classes chosen: ")
-        for i in valid_classes:
-            print("    " + i)
-        print("Spells Chosen: ")
-        for i, x in zip(spells_per_level, range(0, len(spells_per_level))):
-            print("    Level " + str(x) + " spells: " + str(i))
+        _extracted_from_spellbook_validator_18(valid_schools, valid_classes, spells_per_level)
+
+
+# TODO Rename this here and in `spellbook_validator`
+def _extracted_from_spellbook_validator_18(valid_schools, valid_classes, spells_per_level):
+    print("Schools chosen: ")
+    for i in valid_schools:
+        print("    " + i)
+    print("Classes chosen: ")
+    for i in valid_classes:
+        print("    " + i)
+    print("Spells Chosen: ")
+    for i, x in zip(spells_per_level, range(len(spells_per_level))):
+        print(f"    Level {str(x)} spells: {str(i)}")
 
 
 def filtered_spell_list(valid_schools=school_list,
@@ -92,14 +94,14 @@ def filtered_spell_list(valid_schools=school_list,
     '''
     Filters the raw spell list by the schools and classes you define
     '''
-    # filter by schools(s)
+    # filter by schools(s) and class(es)
     df = spell_df[spell_df['School'].isin(valid_schools)]
-    # filter by class(es)
-    df2 = df[(df[valid_classes] == 1).any(axis=1)]
-    return df2
+    return df[(df[valid_classes] == 1).any(axis=1)]
 
 
-def spellbook_generator(df, levels=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
+def spellbook_generator(df, levels = None):
+    if levels is None:
+        levels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     new_df = pd.DataFrame()
     level_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     for i, x in zip(levels, level_list):
@@ -112,9 +114,9 @@ def spellbook_generator(df, levels=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
     return new_df
 
 
-def total_constructor(valid_schools=school_list,
-                      valid_classes=class_list,
-                      spells_per_level=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
+def total_constructor(valid_schools=school_list, valid_classes=class_list, spells_per_level = None):
+    if spells_per_level is None:
+        spells_per_level = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     spellbook_validator(valid_schools, valid_classes, spells_per_level)
     levels = spell_list_length_validator(spells_per_level)
     pool_of_spells = filtered_spell_list(valid_schools, valid_classes)
@@ -138,7 +140,8 @@ def spellbook_text_file(df, text_name):
 
     # add headings
     for spell in spell_text_lists:
-        formatted_spell = [str(h) + ": " + str(s) for h, s in zip(spell_headings, spell)]
+        formatted_spell = [f"{str(h)}: {str(s)}" for h, s in zip(spell_headings, spell)]
+
         formatted_list.append(formatted_spell)
 
     # write to file
@@ -150,13 +153,11 @@ def spellbook_text_file(df, text_name):
             f.write("\n")
 
 
-def build_everything(name,
-                     valid_schools=school_list,
-                     valid_classes=class_list,
-                     spells_per_level=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                     ):
-    csv_path = name + ".csv"
-    txt_path = name + ".txt"
+def build_everything(name, valid_schools=school_list, valid_classes=class_list, spells_per_level = None):
+    if spells_per_level is None:
+        spells_per_level = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    csv_path = f"{name}.csv"
+    txt_path = f"{name}.txt"
     spellbook_df = total_constructor(valid_schools, valid_classes, spells_per_level)
     spellbook_csv_export(spellbook_df, csv_path)
     spellbook_text_file(spellbook_df, txt_path)
